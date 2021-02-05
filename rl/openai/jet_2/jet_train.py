@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import random
 from keras.optimizers import Adam
@@ -7,10 +9,9 @@ from collections import deque
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from openai.jet_2.jet_env import JetEnv2
-from openai.simple_jet.jet_env import JetEnv, WIDTH, HEIGHT
-
 import logging
+
+from rl.openai.jet_2.jet_env import JetEnv2, HEIGHT, WIDTH
 
 
 class DQN:
@@ -33,7 +34,7 @@ class DQN:
         model = keras.Sequential(
             [
                 keras.Input(shape=state_shape),
-                #layers.Conv2D(8, kernel_size=(3, 3), activation='relu'),
+                layers.Conv2D(8, kernel_size=(3, 3), activation='relu'),
                 layers.Flatten(),
                 layers.Dense(32, activation="relu"),
                 layers.Dense(8, activation="relu"),
@@ -96,7 +97,7 @@ def train(display=False):
 
     # updateTargetNetwork = 1000
     dqn_agent = DQN(env=env)
-    #dqn_agent.load_model("model.weights")
+    # dqn_agent.load_model("model.weights")
     steps = []
     for trial in range(trials):
         cur_state = env.reset().reshape((1, HEIGHT, WIDTH, 1))
@@ -138,7 +139,7 @@ def play():
 
 
 if __name__ == "__main__":
-    if False:
+    if True:
         file_handler = logging.FileHandler(filename='training.log')
         stdout_handler = logging.StreamHandler(sys.stdout)
         handlers = [file_handler, stdout_handler]

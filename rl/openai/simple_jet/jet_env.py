@@ -10,12 +10,12 @@ HEIGHT = 5
 WIDTH = 5
 N_CHANNELS = 1
 
+
 # This is the simple pixel game
 # It has 5 x 5 with one block at each line
 # You can control your character to avoid meet the block
 
 class JetEnv(gym.Env):
-
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
@@ -35,7 +35,7 @@ class JetEnv(gym.Env):
         elif action == 1:
             pass
         elif action == 2:
-            if self._boxx < WIDTH-1:
+            if self._boxx < WIDTH - 1:
                 self._boxx += 1
         else:
             raise Exception("error action")
@@ -55,7 +55,7 @@ class JetEnv(gym.Env):
         self._boxq = deque(maxlen=HEIGHT)
         self._context = np.zeros(self.observation_space.shape)
         self._boxx = int(WIDTH / 2)
-        self._context[HEIGHT-1, self._boxx] = 255
+        self._context[HEIGHT - 1, self._boxx] = 255
         return self._context
 
     def render(self, mode='human', close=False):
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     for _ in range(1000):
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
-        #print(observation, reward, done, info)
+        # print(observation, reward, done, info)
         env.render()
         count += 1
         if done:
