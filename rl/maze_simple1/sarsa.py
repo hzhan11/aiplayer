@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from maze_simple1.maze import Maze
+from rl.maze_simple1.maze import Maze
 
 
 class Agent:

@@ -22,7 +22,7 @@ class DQN:
         self.gamma = 0.85
         self.epsilon = 1.0
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
+        self.epsilon_decay = 0.998
         self.learning_rate = 0.005
         self.tau = .125
 
@@ -34,12 +34,14 @@ class DQN:
         model = keras.Sequential(
             [
                 keras.Input(shape=state_shape),
-                layers.Conv2D(8, kernel_size=(3, 3), activation='relu'),
+                #layers.Conv2D(16, kernel_size=(3, 3), activation='relu'),
                 layers.Flatten(),
-                layers.Dense(32, activation="relu"),
-                layers.Dense(8, activation="relu"),
-                #layers.Dropout(0.3),
-                layers.Dense(self.env.action_space.n, activation="relu"),
+                layers.Dense(128, activation='relu'),
+                layers.Dense(32),
+                #layers.Dense(8, activation="relu"),
+                layers.Dropout(0.3),
+                #layers.Dense(self.env.action_space.n, activation="relu"),
+                layers.Dense(self.env.action_space.n, activation="softmax"),
             ]
         )
         model.compile(loss="mse", optimizer=Adam(lr=self.learning_rate))

@@ -7,7 +7,7 @@ from collections import deque
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from rl.openai.simple_jet.jet_env import JetEnv, WIDTH, HEIGHT
+from rl.openai.simple_jet_ok.jet_env import JetEnv, WIDTH, HEIGHT
 
 import logging
 

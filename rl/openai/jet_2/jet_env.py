@@ -6,8 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 N_DISCRETE_ACTIONS = 3
-HEIGHT = 9
-WIDTH = 9
+HEIGHT = 2
+WIDTH = 5
 N_CHANNELS = 1
 
 
@@ -15,8 +15,8 @@ class JetEnv2(gym.Env):
 
     metadata = {'render.modes': ['human']}
 
-    Enemy_Color = 100
-    Bonus_Color = 200
+    Enemy_Color = 85
+    Bonus_Color = 170
 
     def __init__(self):
         super(JetEnv2, self).__init__()
@@ -52,7 +52,7 @@ class JetEnv2(gym.Env):
         if len(self._bonus_q) == HEIGHT and self._bonus_q[0] == self._boxx:
             self._score += 1
             return self._context, 1, False, None
-        if len(self._enemy_q) == HEIGHT and self._enemy_q[0] == self._boxx:
+        elif len(self._enemy_q) == HEIGHT and self._enemy_q[0] == self._boxx:
             return self._context, -1, True, None
         else:
             return self._context, 1, False, None
