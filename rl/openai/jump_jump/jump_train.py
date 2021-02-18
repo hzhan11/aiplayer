@@ -9,9 +9,11 @@ from collections import deque
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from rl.openai.simple_jet_ok.jet_env import JetEnv, WIDTH, HEIGHT
-
 import logging
+
+from tensorflow.python.keras.layers import Rescaling
+
+from rl.openai.jump_jump.jump_env import JumpEnv, H, W, C, CLASS
 
 
 class DQN:
@@ -28,18 +30,28 @@ class DQN:
 
         self.model = self.create_model()
         self.target_model = self.create_model()
+        self.train_loss = -1
 
     def create_model(self):
-        state_shape = self.env.observation_space.shape
         model = keras.Sequential(
             [
-                keras.Input(shape=state_shape),
-                #layers.Conv2D(8, kernel_size=(3, 3), activation='relu'),
+                keras.Input(shape=(H, W, C)),
+                Rescaling(scale=1.0 / 255),
+                layers.Conv2D(32, kernel_size=(3, 3), activation='relu'),
+                layers.MaxPooling2D(pool_size=(2, 2)),
+                layers.Dropout(0.1),
+                layers.Conv2D(32, kernel_size=(3, 3), activation='relu'),
+                layers.MaxPooling2D(pool_size=(2, 2)),
+                layers.Dropout(0.1),
+                # layers.Conv2D(32, kernel_size=(3, 3), activation='relu'),
+                # layers.MaxPooling2D(pool_size=(2, 2)),
+                # layers.Dropout(0.1),
                 layers.Flatten(),
-                layers.Dense(32, activation="relu"),
-                layers.Dense(8, activation="relu"),
-                #layers.Dropout(0.3),
-                layers.Dense(self.env.action_space.n, activation="relu"),
+                # layers.Dense(128, activation='relu'),
+                layers.Dense(128, activation='relu'),
+                layers.Dense(32),
+                layers.Dropout(0.3),
+                layers.Dense(CLASS, activation='softmax'),
             ]
         )
         model.compile(loss="mse", optimizer=Adam(lr=self.learning_rate))
@@ -73,7 +85,7 @@ class DQN:
                 target[0][action] = reward + Q_future * self.gamma
             loss = self.model.fit(state, target, epochs=1, verbose=0).history["loss"][0]
             losses.append(loss)
-        logging.info("training loss avg is {}".format(np.mean(losses)))
+        self.train_loss = np.mean(losses)
 
     def target_train(self):
         weights = self.model.get_weights()
@@ -90,26 +102,23 @@ class DQN:
 
 
 def train(display=False):
-    env = JetEnv()
+    env = JumpEnv()
 
-    trials = 5000
+    trials = 1000
     trial_len = 500
 
     # updateTargetNetwork = 1000
     dqn_agent = DQN(env=env)
-    #dqn_agent.load_model("model.weights")
-    steps = []
+    # dqn_agent.load_model("model.weights")
     for trial in range(trials):
-        cur_state = env.reset().reshape((1, HEIGHT, WIDTH, 1))
-        cur_state = cur_state / 255
+        cur_state = env.reset().reshape((1, H, W, C))
         for step in range(trial_len):
             action = dqn_agent.act(cur_state)
             new_state, reward, done, _ = env.step(action)
             if display:
                 env.render()
-            #reward = reward if not done or (done and step == 199) else -10.0
-            new_state = new_state.reshape((1, HEIGHT, WIDTH, 1))
-            new_state = new_state / 255
+            # reward = reward if not done or (done and step == 199) else -10.0
+            new_state = new_state.reshape((1, H, W, C))
             dqn_agent.remember(cur_state, action, reward, new_state, done)
             dqn_agent.replay()  # internally iterates default (prediction) model
             dqn_agent.target_train()  # iterates target model
@@ -118,34 +127,35 @@ def train(display=False):
             # print("step {} complete".format(step))
             if done:
                 break
-        logging.info("step {} complete with e {}. mem {}".format(step, dqn_agent.epsilon, len(dqn_agent.memory)))
-        dqn_agent.save_model("model/model.weights")
+        logging.info("step {} complete with e {}. mem {}, training loss avg is {}".format(step, dqn_agent.epsilon, len(dqn_agent.memory), dqn_agent.train_loss))
+        if trial % 100 == 0:
+            dqn_agent.save_model("model/model.weights")
 
 
 def play():
-    env = JetEnv()
+    env = JumpEnv()
     dqn_agent = DQN(env=env)
     dqn_agent.load_model("model/model.weights")
     while True:
-        cur_state = env.reset().reshape((1, HEIGHT, WIDTH, 1)) / 255
+        cur_state = env.reset().reshape((1, H, W, C))
         for step in range(2000):
             env.render()
             action = dqn_agent.act(cur_state, True)
             new_state, reward, done, _ = env.step(action)
-            cur_state = new_state.reshape((1, HEIGHT, WIDTH, 1)) / 255
+            cur_state = new_state.reshape((1, H, W, C))
             if done:
                 print(step)
                 break
 
 
 if __name__ == "__main__":
-    if False:
+    if True:
         file_handler = logging.FileHandler(filename='training.log')
         stdout_handler = logging.StreamHandler(sys.stdout)
         handlers = [file_handler, stdout_handler]
         logging.basicConfig(level=logging.INFO, handlers=handlers)
-        #logging.basicConfig(filename='training.log', level=logging.INFO)
+        # logging.basicConfig(filename='training.log', level=logging.INFO)
         logging.info('Started')
-        train(True)
+        train(False)
     else:
         play()
